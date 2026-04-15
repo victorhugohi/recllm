@@ -19,4 +19,7 @@ def __getattr__(name: str):
     if name == "LightGCN":
         from recllm.models.lightgcn import LightGCN
         return LightGCN
+    if name == "DeepFM":
+        from recllm.models.deepfm import DeepFM
+        return DeepFM
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
