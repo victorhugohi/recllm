@@ -6,7 +6,12 @@ Uses causal self-attention over user interaction sequences.
 
 from __future__ import annotations
 
-from typing import Self
+import sys
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 import numpy as np
 import torch

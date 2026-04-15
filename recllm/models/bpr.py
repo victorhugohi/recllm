@@ -5,7 +5,12 @@ Reference: Rendle et al. (2009). BPR: Bayesian Personalized Ranking from Implici
 
 from __future__ import annotations
 
-from typing import Self
+import sys
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 import numpy as np
 import torch
