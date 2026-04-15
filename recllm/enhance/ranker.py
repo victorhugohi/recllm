@@ -7,13 +7,11 @@ user preferences. Supports pointwise, pairwise, and listwise ranking.
 
 from __future__ import annotations
 
-import json
 import logging
 import re
 
 import numpy as np
 
-from recllm.data.base import InteractionData
 from recllm.llm.base import LLMClient
 
 logger = logging.getLogger(__name__)
@@ -135,7 +133,7 @@ class LLMRanker:
         responses = self.llm.generate_batch(prompts)
 
         scored = []
-        for cid, response in zip(ids, responses):
+        for cid, response in zip(ids, responses, strict=False):
             score = self._parse_score(response)
             scored.append((cid, score))
 
@@ -196,7 +194,7 @@ class LLMRanker:
 
         responses = self.llm.generate_batch(prompts)
 
-        for (i, j), response in zip(pairs, responses):
+        for (i, j), response in zip(pairs, responses, strict=False):
             response = response.strip().upper()
             if "A" in response and "B" not in response:
                 wins[i] += 1

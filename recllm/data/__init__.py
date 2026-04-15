@@ -2,7 +2,7 @@
 
 from recllm.data.base import InteractionData
 from recllm.data.movielens import MovieLens
-from recllm.data.splitting import temporal_split, random_split, leave_one_out_split
+from recllm.data.splitting import leave_one_out_split, random_split, temporal_split
 
 __all__ = [
     "InteractionData",

@@ -174,7 +174,7 @@ class FeatureEnhancer:
                 batch_prompts = [p for _, p in batch]
                 responses = self.llm.generate_batch(batch_prompts)
 
-                for (iid, prompt), response in zip(batch, responses):
+                for (iid, prompt), response in zip(batch, responses, strict=False):
                     texts[iid] = response
                     cache_key = f"item_{iid}_{self.llm.model_name}"
                     self._set_cached_text(cache_key, prompt, response)
@@ -218,7 +218,7 @@ class FeatureEnhancer:
 
         # Build user histories
         user_items: dict[int, list[int]] = {}
-        for u, i in zip(arrays["user_id"], arrays["item_id"]):
+        for u, i in zip(arrays["user_id"], arrays["item_id"], strict=False):
             user_items.setdefault(int(u), []).append(int(i))
 
         texts: dict[int, str] = {}
@@ -249,7 +249,7 @@ class FeatureEnhancer:
                 batch_prompts = [p for _, p in batch]
                 responses = self.llm.generate_batch(batch_prompts)
 
-                for (uid, prompt), response in zip(batch, responses):
+                for (uid, prompt), response in zip(batch, responses, strict=False):
                     texts[uid] = response
                     cache_key = f"user_{uid}_{self.llm.model_name}"
                     self._set_cached_text(cache_key, prompt, response)
@@ -295,7 +295,7 @@ class FeatureEnhancer:
             batch_texts = [text for _, text in to_embed]
             batch_embeddings = self.llm.embed(batch_texts)
 
-            for (entity_id, _), emb in zip(to_embed, batch_embeddings):
+            for (entity_id, _), emb in zip(to_embed, batch_embeddings, strict=False):
                 embeddings[entity_id] = emb
                 cache_key = f"{prefix}_{entity_id}_{self.llm.model_name}_emb"
                 self._set_cached_embedding(cache_key, emb)

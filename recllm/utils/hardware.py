@@ -50,10 +50,11 @@ class HardwareProfile:
             lines.append("Recommended Models:")
             for rec in self.recommended_models:
                 star = " *" if rec.note else ""
+                vram = f"~{rec.estimated_vram_gb:.1f} GB"
+                tps = f"~{rec.estimated_tokens_per_sec:.0f} tok/s"
                 lines.append(
                     f"  {rec.model_name} {rec.quantization}"
-                    f"  (~{rec.estimated_vram_gb:.1f} GB, ~{rec.estimated_tokens_per_sec:.0f} tok/s)"
-                    f"{star}"
+                    f"  ({vram}, {tps}){star}"
                 )
                 if rec.note:
                     lines.append(f"    {rec.note}")

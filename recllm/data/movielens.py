@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import io
 import zipfile
 from pathlib import Path
@@ -12,7 +11,7 @@ import requests
 from tqdm import tqdm
 
 from recllm.data.base import InteractionData
-from recllm.data.splitting import random_split, temporal_split, leave_one_out_split
+from recllm.data.splitting import leave_one_out_split, random_split, temporal_split
 
 # Dataset URLs and metadata
 _MOVIELENS_CONFIGS = {
@@ -187,7 +186,12 @@ class MovieLens:
             rows = [line.split(sep)[:4] for line in lines]
             df = pl.DataFrame(
                 {col: [row[i] for row in rows] for i, col in enumerate(columns)}
-            ).cast({"user_id": pl.Int64, "item_id": pl.Int64, "rating": pl.Float64, "timestamp": pl.Int64})
+            ).cast({
+                "user_id": pl.Int64,
+                "item_id": pl.Int64,
+                "rating": pl.Float64,
+                "timestamp": pl.Int64,
+            })
 
         return df.select(["user_id", "item_id", "rating", "timestamp"])
 

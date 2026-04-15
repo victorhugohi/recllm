@@ -151,7 +151,7 @@ class NCF(BaseModel):
 
         # Build interaction lookup
         self._user_interactions = {}
-        for u, i in zip(user_ids, item_ids):
+        for u, i in zip(user_ids, item_ids, strict=False):
             self._user_interactions.setdefault(int(u), set()).add(int(i))
 
         self._model = _NeuMF(n_users, n_items, self.gmf_dim, self.mlp_dims).to(
@@ -163,9 +163,9 @@ class NCF(BaseModel):
             weight_decay=self.weight_decay,
         )
 
-        n_interactions = len(user_ids)
+        len(user_ids)
 
-        for epoch in trange(epochs, desc="NCF Training"):
+        for _epoch in trange(epochs, desc="NCF Training"):
             self._model.train()
 
             if self.loss_type == "bce":

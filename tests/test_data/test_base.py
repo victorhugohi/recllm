@@ -2,13 +2,14 @@
 
 import numpy as np
 import polars as pl
-import pytest
 
 from recllm.data.base import InteractionData
 from recllm.data.splitting import random_split, temporal_split
 
 
-def _make_sample_data(n_users: int = 50, n_items: int = 100, n_interactions: int = 500) -> InteractionData:
+def _make_sample_data(
+    n_users: int = 50, n_items: int = 100, n_interactions: int = 500,
+) -> InteractionData:
     """Create a small synthetic dataset for testing."""
     rng = np.random.default_rng(42)
     user_ids = rng.integers(0, n_users, size=n_interactions)

@@ -9,10 +9,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
-
-import numpy as np
 
 from recllm.data.base import InteractionData
 from recllm.models.base import BaseModel

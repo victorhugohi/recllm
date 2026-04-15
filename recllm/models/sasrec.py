@@ -154,17 +154,14 @@ class SASRec(BaseModel):
     def _build_sequences(self, data: InteractionData) -> dict[int, list[int]]:
         """Build ordered interaction sequences per user."""
         df = data.interactions
-        if "timestamp" in df.columns:
-            df = df.sort(["user_id", "timestamp"])
-        else:
-            df = df.sort("user_id")
+        df = df.sort(["user_id", "timestamp"]) if "timestamp" in df.columns else df.sort("user_id")
 
         arrays = df.to_dict()
         user_ids = arrays["user_id"].to_list()
         item_ids = arrays["item_id"].to_list()
 
         sequences: dict[int, list[int]] = {}
-        for u, i in zip(user_ids, item_ids):
+        for u, i in zip(user_ids, item_ids, strict=False):
             sequences.setdefault(u, []).append(i)
         return sequences
 
@@ -233,7 +230,7 @@ class SASRec(BaseModel):
 
         user_ids_list = list(sequences.keys())
 
-        for epoch in trange(epochs, desc="SASRec Training"):
+        for _epoch in trange(epochs, desc="SASRec Training"):
             self._model.train()
             np.random.shuffle(user_ids_list)
             total_loss = 0.0

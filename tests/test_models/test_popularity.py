@@ -2,7 +2,6 @@
 
 import numpy as np
 import polars as pl
-import pytest
 
 from recllm.data.base import InteractionData
 from recllm.models.popularity import PopularityBaseline

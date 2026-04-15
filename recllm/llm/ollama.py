@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
@@ -78,11 +79,11 @@ class OllamaClient(LLMClient):
             )
             response.raise_for_status()
             return response.json()["response"]
-        except requests.ConnectionError:
+        except requests.ConnectionError as err:
             raise ConnectionError(
                 f"Cannot connect to Ollama at {self.base_url}. "
                 "Is Ollama running? Start it with: ollama serve"
-            )
+            ) from err
 
     def generate_batch(
         self,
@@ -123,11 +124,11 @@ class OllamaClient(LLMClient):
                 )
                 response.raise_for_status()
                 embeddings.append(response.json()["embedding"])
-            except requests.ConnectionError:
+            except requests.ConnectionError as err:
                 raise ConnectionError(
                     f"Cannot connect to Ollama at {self.base_url}. "
                     "Is Ollama running? Start it with: ollama serve"
-                )
+                ) from err
         return np.array(embeddings, dtype=np.float32)
 
     def is_available(self) -> bool:
@@ -148,11 +149,9 @@ class OllamaClient(LLMClient):
 
     def unload(self) -> None:
         """Unload the model from GPU memory (ADR-005 support)."""
-        try:
+        with contextlib.suppress(requests.ConnectionError):
             requests.post(
                 f"{self.base_url}/api/generate",
                 json={"model": self._model, "keep_alive": 0},
                 timeout=10,
             )
-        except requests.ConnectionError:
-            pass

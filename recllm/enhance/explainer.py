@@ -162,7 +162,7 @@ class LLMExplainer:
 
         history_str = ", ".join(user_history[-10:])
 
-        for idx, (item, score) in enumerate(zip(recommended_items, scores)):
+        for idx, (item, score) in enumerate(zip(recommended_items, scores, strict=False)):
             cache_key = self._make_cache_key(user_history, item, score)
             cached = self._cache.get(cache_key)
             if cached is None and self._cache_dir:
@@ -180,7 +180,7 @@ class LLMExplainer:
             prompts = [p for _, p in to_generate]
             responses = self.llm.generate_batch(prompts)
 
-            for (idx, prompt), response in zip(to_generate, responses):
+            for (idx, _prompt), response in zip(to_generate, responses, strict=False):
                 item = recommended_items[idx]
                 score = scores[idx]
                 cache_key = self._make_cache_key(user_history, item, score)

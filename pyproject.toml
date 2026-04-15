@@ -62,9 +62,9 @@ dev = [
 all = ["recllm[cloud,llamacpp,viz,dev]"]
 
 [project.urls]
-Homepage = "https://github.com/vicosub/recllm"
+Homepage = "https://github.com/victorhugohi/recllm"
 Documentation = "https://recllm.readthedocs.io"
-Repository = "https://github.com/vicosub/recllm"
+Repository = "https://github.com/victorhugohi/recllm"
 
 [tool.hatch.build.targets.wheel]
 packages = ["recllm"]
@@ -75,6 +75,7 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["SIM113"]  # counter pattern in training loops is clearer than enumerate
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

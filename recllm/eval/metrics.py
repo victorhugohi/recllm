@@ -137,7 +137,7 @@ def compute_metrics(
     # Build per-user ground truth from test data
     test_arrays = test_data.to_numpy()
     user_ground_truth: dict[int, set[int]] = {}
-    for u, i in zip(test_arrays["user_id"], test_arrays["item_id"]):
+    for u, i in zip(test_arrays["user_id"], test_arrays["item_id"], strict=False):
         user_ground_truth.setdefault(int(u), set()).add(int(i))
 
     # Build per-user seen items from train data (for exclusion)
@@ -170,7 +170,7 @@ def compute_metrics(
 
         n_evaluated += 1
 
-        for metric_str, (name, k) in zip(metrics, parsed_metrics):
+        for metric_str, (name, k) in zip(metrics, parsed_metrics, strict=False):
             if name == "ndcg":
                 metric_sums[metric_str] += ndcg_at_k(ranked_items, relevant_items, k or 10)
             elif name in ("hr", "hit_rate"):

@@ -94,7 +94,7 @@ class BPR(BaseModel):
         item_ids = arrays["item_id"]
 
         self._user_interactions = {}
-        for u, i in zip(user_ids, item_ids):
+        for u, i in zip(user_ids, item_ids, strict=False):
             self._user_interactions.setdefault(int(u), set()).add(int(i))
 
         # Initialize embeddings
@@ -112,7 +112,7 @@ class BPR(BaseModel):
         n_interactions = len(user_ids)
         indices = np.arange(n_interactions)
 
-        for epoch in trange(epochs, desc="BPR Training"):
+        for _epoch in trange(epochs, desc="BPR Training"):
             np.random.shuffle(indices)
             total_loss = 0.0
             n_batches = 0

@@ -133,10 +133,7 @@ def leave_one_out_split(
     if time_order and "timestamp" not in data.interactions.columns:
         raise ValueError("Leave-one-out with time_order requires 'timestamp' column.")
 
-    if time_order:
-        df = data.interactions.sort(["user_id", "timestamp"])
-    else:
-        df = data.interactions
+    df = data.interactions.sort(["user_id", "timestamp"]) if time_order else data.interactions
 
     # Assign row number within each user (descending for most recent first)
     df = df.with_columns(

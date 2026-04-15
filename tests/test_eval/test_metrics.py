@@ -6,12 +6,12 @@ import numpy as np
 import pytest
 
 from recllm.eval.metrics import (
+    _parse_metric,
     hit_rate_at_k,
     mrr,
     ndcg_at_k,
     precision_at_k,
     recall_at_k,
-    _parse_metric,
 )
 
 
