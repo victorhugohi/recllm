@@ -11,3 +11,11 @@ __all__ = [
     "random_split",
     "leave_one_out_split",
 ]
+
+
+# Lazy imports for optional dataset loaders
+def __getattr__(name: str):
+    if name == "AmazonReviews":
+        from recllm.data.amazon import AmazonReviews
+        return AmazonReviews
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
