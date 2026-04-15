@@ -102,6 +102,16 @@ RecLLM uses a 5-layer modular architecture:
 | PopularityBaseline | Non-personalized | - |
 | BPR | Matrix Factorization | Rendle et al. (2009) |
 | NCF (NeuMF) | Deep Learning | He et al. (2017) |
+| SASRec | Sequential / Transformer | Kang & McAuley (2018) |
+| LightGCN | Graph Convolution | He et al. (2020) |
+
+## LLM Integration Patterns
+
+| Pattern | Module | Reference |
+|---------|--------|-----------|
+| LLM-as-Feature-Enhancer | `FeatureEnhancer` | RLMRec (Ren et al. 2024), KAR (Xi et al. 2024) |
+| LLM-as-Ranker | `LLMRanker` | TALLRec (Bao et al. 2024), Hou et al. (2024) |
+| LLM-as-Explainer | `LLMExplainer` | - |
 
 ## Hardware Requirements
 
