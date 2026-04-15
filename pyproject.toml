@@ -1,0 +1,86 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "recllm"
+version = "0.1.0a1"
+description = "A unified Python library for LLM-enhanced recommendation systems with local model inference"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    { name = "Victor", email = "vicosub@gmail.com" },
+]
+keywords = [
+    "recommendation-systems",
+    "large-language-models",
+    "local-inference",
+    "ollama",
+    "recsys",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "polars>=1.0",
+    "numpy>=1.24",
+    "torch>=2.0",
+    "requests>=2.28",
+    "sentence-transformers>=2.2",
+    "tqdm>=4.65",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+cloud = [
+    "openai>=1.0",
+    "anthropic>=0.20",
+]
+llamacpp = [
+    "llama-cpp-python>=0.2",
+]
+viz = [
+    "matplotlib>=3.7",
+    "seaborn>=0.12",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "hypothesis>=6.0",
+    "ruff>=0.4",
+    "mypy>=1.8",
+]
+all = ["recllm[cloud,llamacpp,viz,dev]"]
+
+[project.urls]
+Homepage = "https://github.com/vicosub/recllm"
+Documentation = "https://recllm.readthedocs.io"
+Repository = "https://github.com/vicosub/recllm"
+
+[tool.hatch.build.targets.wheel]
+packages = ["recllm"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
