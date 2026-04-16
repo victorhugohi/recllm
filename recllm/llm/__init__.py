@@ -11,4 +11,7 @@ def __getattr__(name: str):
     if name == "OpenAIClient":
         from recllm.llm.openai_client import OpenAIClient
         return OpenAIClient
+    if name == "LlamaCppClient":
+        from recllm.llm.llamacpp import LlamaCppClient
+        return LlamaCppClient
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

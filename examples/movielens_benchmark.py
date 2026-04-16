@@ -52,11 +52,11 @@ def build_models(device: str = "cpu") -> dict:
 
     return {
         "Popularity": PopularityBaseline(),
-        "BPR": BPR(embed_dim=64, learning_rate=0.01, device=device),
+        "BPR": BPR(embedding_dim=64, learning_rate=0.01, device=device),
         "NCF": NCF(gmf_dim=32, mlp_dims=[64, 32, 16], loss="bce", device=device),
         "DeepFM": DeepFM(embed_dim=32, mlp_dims=[128, 64, 32], loss="bce", device=device),
-        "SASRec": SASRec(embed_dim=64, n_heads=2, n_layers=2, max_len=50, device=device),
-        "LightGCN": LightGCN(embed_dim=64, n_layers=3, device=device),
+        "SASRec": SASRec(embedding_dim=64, n_heads=2, n_layers=2, max_seq_len=50, device=device),
+        "LightGCN": LightGCN(embedding_dim=64, n_layers=3, device=device),
     }
 
 

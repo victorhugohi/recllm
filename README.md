@@ -89,11 +89,12 @@ RecLLM uses a 5-layer modular architecture:
 
 | Layer | Module | Purpose |
 |-------|--------|---------|
-| Data | `recllm.data` | Polars-based loading, splitting, preprocessing |
-| Model | `recllm.models` | Recommendation algorithms (Popularity, BPR, NCF) |
-| LLM | `recllm.llm` | Backend-agnostic LLM clients (Ollama, OpenAI) |
+| Data | `recllm.data` | Polars-based loading, splitting, preprocessing (MovieLens, Amazon, Yelp) |
+| Model | `recllm.models` | 6 recommendation algorithms spanning 5 paradigms |
+| LLM | `recllm.llm` | Backend-agnostic LLM clients (Ollama, OpenAI, llama.cpp) |
 | Enhancement | `recllm.enhance` | LLM-RecSys integration patterns |
-| Evaluation | `recllm.eval` | Ranking metrics and experiment pipelines |
+| Evaluation | `recllm.eval` | Ranking metrics, statistical significance testing |
+| Pipeline | `recllm.pipeline` | Experiment orchestration, YAML/JSON config |
 
 ## Models
 
@@ -102,6 +103,7 @@ RecLLM uses a 5-layer modular architecture:
 | PopularityBaseline | Non-personalized | - |
 | BPR | Matrix Factorization | Rendle et al. (2009) |
 | NCF (NeuMF) | Deep Learning | He et al. (2017) |
+| DeepFM | FM + Deep Network | Guo et al. (2017) |
 | SASRec | Sequential / Transformer | Kang & McAuley (2018) |
 | LightGCN | Graph Convolution | He et al. (2020) |
 
@@ -112,6 +114,32 @@ RecLLM uses a 5-layer modular architecture:
 | LLM-as-Feature-Enhancer | `FeatureEnhancer` | RLMRec (Ren et al. 2024), KAR (Xi et al. 2024) |
 | LLM-as-Ranker | `LLMRanker` | TALLRec (Bao et al. 2024), Hou et al. (2024) |
 | LLM-as-Explainer | `LLMExplainer` | - |
+
+### YAML Configuration
+
+```yaml
+# experiment.yaml
+seed: 42
+epochs: 20
+metrics: [ndcg@10, hr@10, mrr]
+data:
+  type: movielens
+  version: 100k
+models:
+  - type: popularity
+  - type: bpr
+    embed_dim: 64
+  - type: deepfm
+    embed_dim: 32
+```
+
+```python
+from recllm.pipeline import run_from_config
+
+results = run_from_config("experiment.yaml")
+for name, result in results.items():
+    print(f"{name}: {result.metrics}")
+```
 
 ## Hardware Requirements
 

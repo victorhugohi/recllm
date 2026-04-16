@@ -18,4 +18,7 @@ def __getattr__(name: str):
     if name == "AmazonReviews":
         from recllm.data.amazon import AmazonReviews
         return AmazonReviews
+    if name == "YelpDataset":
+        from recllm.data.yelp import YelpDataset
+        return YelpDataset
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

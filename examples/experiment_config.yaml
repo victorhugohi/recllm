@@ -1,0 +1,51 @@
+# RecLLM Experiment Configuration
+# Run with: python -c "from recllm.pipeline import run_from_config; run_from_config('examples/experiment_config.yaml')"
+
+seed: 42
+epochs: 20
+metrics:
+  - ndcg@10
+  - hr@10
+  - mrr
+
+split_ratios: [0.8, 0.1, 0.1]
+
+data:
+  type: movielens
+  version: 100k
+
+models:
+  - type: popularity
+
+  - type: bpr
+    embedding_dim: 64
+    learning_rate: 0.01
+
+  - type: ncf
+    gmf_dim: 32
+    mlp_dims: [64, 32, 16]
+    loss: bce
+
+  - type: deepfm
+    embed_dim: 32
+    mlp_dims: [128, 64, 32]
+    loss: bce
+
+  - type: sasrec
+    embedding_dim: 64
+    n_heads: 2
+    n_layers: 2
+    max_seq_len: 50
+
+  - type: lightgcn
+    embedding_dim: 64
+    n_layers: 3
+
+# Optional LLM enhancement (uncomment to enable)
+# llm:
+#   type: ollama
+#   model: mistral:7b
+#
+# enhance:
+#   items: true
+#   users: false
