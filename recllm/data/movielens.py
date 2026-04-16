@@ -164,6 +164,11 @@ class MovieLens:
                 pbar.update(len(chunk))
 
         content.seek(0)
+        # Cache zip for item feature extraction later
+        zip_cache = self.data_dir / f"ml-{self.version}.zip"
+        if not zip_cache.exists():
+            zip_cache.write_bytes(content.getvalue())
+
         with zipfile.ZipFile(content) as zf:
             ratings_file = self.config["ratings_file"]
             with zf.open(ratings_file) as f:
@@ -196,6 +201,107 @@ class MovieLens:
         return df.select(["user_id", "item_id", "rating", "timestamp"])
 
     def _load_item_features(self) -> pl.DataFrame | None:
-        """Load item metadata (movies.csv / u.item) if available in cache."""
-        # Will be implemented when item features are needed for LLM enhancement
+        """Load item metadata (movie titles, genres) from the dataset.
+
+        Returns:
+            DataFrame with columns [item_id, title, genres] or None.
+        """
+        cache_path = self.data_dir / "items.parquet"
+        if cache_path.exists():
+            return pl.read_parquet(cache_path)
+
+        # Check if we have the zip cached
+        zip_cache = self.data_dir / f"ml-{self.version}.zip"
+        if not zip_cache.exists():
+            # Re-download (item features are in the same zip)
+            return None
+
+        try:
+            import zipfile
+
+            with zipfile.ZipFile(zip_cache) as zf:
+                if self.version == "100k":
+                    return self._parse_100k_items(zf, cache_path)
+                elif self.version == "1m":
+                    return self._parse_1m_items(zf, cache_path)
+                elif self.version == "25m":
+                    return self._parse_25m_items(zf, cache_path)
+        except Exception:
+            return None
         return None
+
+    def _parse_100k_items(self, zf, cache_path: Path) -> pl.DataFrame | None:
+        """Parse u.item from ML-100K (pipe-separated, latin-1)."""
+        try:
+            with zf.open("ml-100k/u.item") as f:
+                raw = f.read().decode("latin-1")
+        except KeyError:
+            return None
+
+        genre_names = [
+            "unknown", "Action", "Adventure", "Animation", "Children's",
+            "Comedy", "Crime", "Documentary", "Drama", "Fantasy",
+            "Film-Noir", "Horror", "Musical", "Mystery", "Romance",
+            "Sci-Fi", "Thriller", "War", "Western",
+        ]
+
+        rows = []
+        for line in raw.strip().split("\n"):
+            parts = line.split("|")
+            if len(parts) < 5:
+                continue
+            item_id = int(parts[0])
+            title = parts[1]
+            # Genres are binary columns at positions 5-23
+            genres = []
+            for i, gname in enumerate(genre_names):
+                if len(parts) > 5 + i and parts[5 + i].strip() == "1":
+                    genres.append(gname)
+            rows.append({
+                "item_id": item_id,
+                "title": title,
+                "genres": "|".join(genres) if genres else "unknown",
+            })
+
+        df = pl.DataFrame(rows)
+        df.write_parquet(cache_path)
+        return df
+
+    def _parse_1m_items(self, zf, cache_path: Path) -> pl.DataFrame | None:
+        """Parse movies.dat from ML-1M (::separator, latin-1)."""
+        try:
+            with zf.open("ml-1m/movies.dat") as f:
+                raw = f.read().decode("latin-1")
+        except KeyError:
+            return None
+
+        rows = []
+        for line in raw.strip().split("\n"):
+            parts = line.split("::")
+            if len(parts) >= 3:
+                rows.append({
+                    "item_id": int(parts[0]),
+                    "title": parts[1],
+                    "genres": parts[2],
+                })
+
+        df = pl.DataFrame(rows)
+        df.write_parquet(cache_path)
+        return df
+
+    def _parse_25m_items(self, zf, cache_path: Path) -> pl.DataFrame | None:
+        """Parse movies.csv from ML-25M."""
+        try:
+            with zf.open("ml-25m/movies.csv") as f:
+                raw = f.read().decode("utf-8")
+        except KeyError:
+            return None
+
+        import io
+        df = pl.read_csv(io.StringIO(raw), has_header=True)
+        df = df.rename({"movieId": "item_id"})
+        if "title" not in df.columns:
+            return None
+        df = df.select(["item_id", "title", "genres"])
+        df.write_parquet(cache_path)
+        return df

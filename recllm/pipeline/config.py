@@ -75,8 +75,21 @@ def _build_dataset(data_config: dict) -> InteractionData:
         category = data_config.pop("category", "digital_music")
         loader = AmazonReviews(category=category, **data_config).load()
         return loader.data
+    elif data_type == "bookcrossing":
+        from recllm.data.bookcrossing import BookCrossing
+        explicit_only = data_config.pop("explicit_only", True)
+        loader = BookCrossing(explicit_only=explicit_only, **data_config).load()
+        return loader.data
+    elif data_type == "yelp":
+        from recllm.data.yelp import YelpDataset
+        data_dir = data_config.pop("data_dir")
+        loader = YelpDataset(data_dir=data_dir, **data_config).load()
+        return loader.data
     else:
-        raise ValueError(f"Unknown dataset type: {data_type!r}. Available: movielens, amazon")
+        raise ValueError(
+            f"Unknown dataset type: {data_type!r}. "
+            "Available: movielens, amazon, bookcrossing, yelp"
+        )
 
 
 def _build_llm(llm_config: dict):

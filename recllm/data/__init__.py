@@ -21,4 +21,7 @@ def __getattr__(name: str):
     if name == "YelpDataset":
         from recllm.data.yelp import YelpDataset
         return YelpDataset
+    if name == "BookCrossing":
+        from recllm.data.bookcrossing import BookCrossing
+        return BookCrossing
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
