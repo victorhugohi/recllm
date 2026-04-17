@@ -22,6 +22,9 @@ class OllamaClient(LLMClient):
         base_url: Ollama API base URL.
         timeout: Request timeout in seconds.
         num_ctx: Context window size in tokens.
+        think: For reasoning models (qwen3, deepseek-r1), controls the
+            Ollama `think` flag. Set to False to skip chain-of-thought for
+            faster responses. None leaves the flag unset (model default).
 
     Example:
         >>> llm = OllamaClient(model="mistral:7b")
@@ -35,11 +38,13 @@ class OllamaClient(LLMClient):
         base_url: str = "http://localhost:11434",
         timeout: int = 120,
         num_ctx: int = 4096,
+        think: bool | None = None,
     ):
         self._model = model
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.num_ctx = num_ctx
+        self.think = think
 
     @property
     def model_name(self) -> str:
@@ -69,6 +74,8 @@ class OllamaClient(LLMClient):
             "stream": False,
             "options": options,
         }
+        if self.think is not None:
+            payload["think"] = self.think
         payload.update(kwargs)
 
         try:

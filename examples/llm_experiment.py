@@ -58,7 +58,11 @@ def run_experiment(
     output_path.mkdir(parents=True, exist_ok=True)
 
     # --- Step 0: Verify Ollama ---
-    llm = OllamaClient(model=ollama_model, num_ctx=2048, timeout=120)
+    # think=False skips chain-of-thought for reasoning models (qwen3,
+    # deepseek-r1) so the experiment finishes in minutes, not hours.
+    llm = OllamaClient(
+        model=ollama_model, num_ctx=2048, timeout=300, think=False
+    )
     if not llm.is_available():
         logger.error(
             "Ollama model %s not available. "
@@ -140,7 +144,7 @@ def run_experiment(
         n_enhance_items,
     )
     enhancer = FeatureEnhancer(
-        llm, cache_dir="llm_cache", batch_size=4,
+        llm, cache_dir="llm_cache", batch_size=1,
     )
 
     # Enhance a subset of items (text descriptions only, no embeddings)
