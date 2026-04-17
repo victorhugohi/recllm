@@ -148,6 +148,13 @@ class MovieLens:
         )
         return self
 
+    @property
+    def data(self) -> InteractionData:
+        """Return the underlying InteractionData. Call .load() first."""
+        if self._data is None:
+            raise RuntimeError("Call .load() before accessing .data")
+        return self._data
+
     def _download_and_parse(self) -> pl.DataFrame:
         """Download the dataset zip and parse ratings."""
         url = self.config["url"]
