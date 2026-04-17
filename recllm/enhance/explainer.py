@@ -54,11 +54,13 @@ class LLMExplainer:
     ANALYTICAL_TEMPLATE = (
         "Analyze the recommendation of '{item}' for a user who "
         "previously engaged with: {history}\n\n"
-        "Provide a structured explanation with:\n"
-        "1. Key preference patterns identified\n"
-        "2. How the recommended item matches\n"
-        "3. Confidence assessment\n\n"
-        "Relevance score: {score:.0%}"
+        "Respond in exactly three short sentences, one per point, "
+        "no headers or bullets:\n"
+        "1. Key preference pattern (one sentence).\n"
+        "2. How the item matches that pattern (one sentence).\n"
+        "3. Confidence with justification (one sentence).\n\n"
+        "Relevance score: {score:.0%}. "
+        "Keep the full response under 120 words."
     )
 
     BRIEF_TEMPLATE = (

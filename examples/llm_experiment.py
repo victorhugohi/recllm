@@ -23,7 +23,7 @@ from recllm.data.splitting import random_split
 from recllm.enhance.explainer import LLMExplainer
 from recllm.enhance.feature_enhancer import FeatureEnhancer
 from recllm.enhance.ranker import LLMRanker
-from recllm.eval.metrics import compute_metrics
+from recllm.eval.metrics import compute_metrics, hit_rate_at_k, mrr, ndcg_at_k
 from recllm.llm.ollama import OllamaClient
 from recllm.utils.reproducibility import set_seed
 
@@ -213,10 +213,24 @@ def run_experiment(
         for row in data.data.item_features.iter_rows(named=True):
             title_map[row["item_id"]] = row["title"]
 
+    # Build per-user held-out ground-truth from the test split so we can
+    # score both the BPR and LLM orderings on the same items.
+    test_ground_truth: dict[int, set[int]] = {}
+    for row in test.interactions.iter_rows(named=True):
+        test_ground_truth.setdefault(
+            int(row["user_id"]), set()
+        ).add(int(row["item_id"]))
+
     rerank_results = []
     test_users = list(
         test.interactions["user_id"].unique().sort().to_list()
     )[:n_rerank_users]
+
+    import numpy as np
+
+    bpr_ndcgs, llm_ndcgs = [], []
+    bpr_hrs, llm_hrs = [], []
+    bpr_mrrs, llm_mrrs = [], []
 
     t0 = time.time()
     for user_id in test_users:
@@ -258,10 +272,24 @@ def run_experiment(
             candidate_ids=candidate_ids,
         )
 
+        llm_order = [int(iid) for iid, _ in reranked]
+
+        # Score both orderings against held-out test items for this user.
+        gt = test_ground_truth.get(int(user_id), set())
+        if gt:
+            bpr_arr = np.array(candidate_ids)
+            llm_arr = np.array(llm_order)
+            bpr_ndcgs.append(ndcg_at_k(bpr_arr, gt, 10))
+            llm_ndcgs.append(ndcg_at_k(llm_arr, gt, 10))
+            bpr_hrs.append(hit_rate_at_k(bpr_arr, gt, 10))
+            llm_hrs.append(hit_rate_at_k(llm_arr, gt, 10))
+            bpr_mrrs.append(mrr(bpr_arr, gt))
+            llm_mrrs.append(mrr(llm_arr, gt))
+
         rerank_results.append({
             "user_id": int(user_id),
             "bpr_order": candidate_ids,
-            "llm_order": [int(iid) for iid, _ in reranked],
+            "llm_order": llm_order,
             "user_history": user_history[:5],
         })
 
@@ -281,10 +309,45 @@ def run_experiment(
         len(rerank_results), rerank_time,
     )
 
+    def _mean(xs: list[float]) -> float:
+        return float(np.mean(xs)) if xs else 0.0
+
+    rerank_metrics = {
+        "n_scored": len(bpr_ndcgs),
+        "bpr": {
+            "ndcg@10": _mean(bpr_ndcgs),
+            "hr@10": _mean(bpr_hrs),
+            "mrr": _mean(bpr_mrrs),
+        },
+        "llm": {
+            "ndcg@10": _mean(llm_ndcgs),
+            "hr@10": _mean(llm_hrs),
+            "mrr": _mean(llm_mrrs),
+        },
+    }
+    if bpr_ndcgs:
+        rerank_metrics["delta"] = {
+            "ndcg@10": rerank_metrics["llm"]["ndcg@10"]
+            - rerank_metrics["bpr"]["ndcg@10"],
+            "hr@10": rerank_metrics["llm"]["hr@10"]
+            - rerank_metrics["bpr"]["hr@10"],
+            "mrr": rerank_metrics["llm"]["mrr"]
+            - rerank_metrics["bpr"]["mrr"],
+        }
+        logger.info(
+            "Re-rank metrics on %d scored users: "
+            "BPR NDCG@10=%.4f vs LLM NDCG@10=%.4f (delta=%+.4f)",
+            len(bpr_ndcgs),
+            rerank_metrics["bpr"]["ndcg@10"],
+            rerank_metrics["llm"]["ndcg@10"],
+            rerank_metrics["delta"]["ndcg@10"],
+        )
+
     results["reranking"] = {
         "n_users": len(rerank_results),
         "time_s": round(rerank_time, 2),
         "mode": "listwise",
+        "metrics": rerank_metrics,
         "samples": rerank_results[:5],
     }
 
@@ -353,6 +416,23 @@ def run_experiment(
           f"in {enhance_time:.1f}s")
     print(f"Re-Ranking: {len(rerank_results)} users "
           f"in {rerank_time:.1f}s (listwise)")
+    if rerank_metrics.get("n_scored", 0) > 0:
+        b = rerank_metrics["bpr"]
+        l_ = rerank_metrics["llm"]
+        d = rerank_metrics["delta"]
+        print(
+            f"  BPR order:  NDCG@10={b['ndcg@10']:.4f} "
+            f"HR@10={b['hr@10']:.4f} MRR={b['mrr']:.4f}"
+        )
+        print(
+            f"  LLM order:  NDCG@10={l_['ndcg@10']:.4f} "
+            f"HR@10={l_['hr@10']:.4f} MRR={l_['mrr']:.4f}"
+        )
+        print(
+            f"  Delta:      NDCG@10={d['ndcg@10']:+.4f} "
+            f"HR@10={d['hr@10']:+.4f} MRR={d['mrr']:+.4f} "
+            f"(n={rerank_metrics['n_scored']})"
+        )
     print(f"Explanations: {len(explanation_results)} styles generated")
     print("=" * 60)
 
