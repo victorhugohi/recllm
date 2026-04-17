@@ -188,10 +188,11 @@ class LightGCN(BaseModel):
             total_loss = 0.0
             n_batches = 0
 
-            # Propagate once per epoch
-            user_final, item_final = self._propagate()
-
             for start in range(0, n_interactions, batch_size):
+                # Propagate per batch so the autograd graph is fresh each
+                # backward pass (graph is freed by .backward()).
+                user_final, item_final = self._propagate()
+
                 batch_idx = indices[start : start + batch_size]
                 batch_users = user_ids[batch_idx]
                 batch_pos_items = item_ids[batch_idx]
